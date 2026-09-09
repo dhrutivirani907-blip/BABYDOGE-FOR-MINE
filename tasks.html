@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Complete Tasks</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+
+        <div class="header">
+
+            <div class="header-top">
+
+                <h1>Complete Tasks</h1>
+
+                <button class="menu-btn"
+                        onclick="goHome()">
+
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                </button>
+
+            </div>
+
+            <p>Complete tasks and get rewards</p>
+
+        </div>
+
+
+        <!-- Task 1 -->
+
+        <div class="card"
+             onclick="openTask(1)">
+
+            <div class="icon">
+
+                <i class="fa-brands fa-telegram"></i>
+
+            </div>
+
+            <div class="content">
+
+                <h2>Complete Task</h2>
+
+                <p>Get 5M BABYDOGE</p>
+
+            </div>
+
+            <div class="arrow">
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </div>
+
+        </div>
+
+
+        <!-- Task 2 -->
+
+        <div class="card"
+             onclick="openTask(2)">
+
+            <div class="icon">
+
+                <i class="fa-brands fa-telegram"></i>
+
+            </div>
+
+            <div class="content">
+
+                <h2>Complete Task</h2>
+
+                <p>Get 5M BABYDOGE</p>
+
+            </div>
+
+            <div class="arrow">
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function goHome() {
+
+            window.location.href = "index.html";
+
+        }
+
+
+        function openTask(task) {
+
+            if (task === 1) {
+
+                window.location.href = "task1.html";
+
+            }
+
+            if (task === 2) {
+
+                window.location.href = "task2.html";
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>

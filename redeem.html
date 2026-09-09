@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Redeem</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; touch-action: manipulation; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        html, body { 
+            width: 100%; 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #080e18 !important; 
+            color: #ffffff !important;
+        }
+        
+        .container { padding: 15px; width: 100%; min-height: 100vh; background-color: #080e18; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .back-btn { cursor: pointer; background: transparent; border: none; font-size: 22px; color: #ffffff; padding: 8px; }
+        .page-header h2 { color: #ffffff; margin: 0; }
+
+        /* Dark Card Style Overrides */
+        .card-dark {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+            border-radius: 12px !important;
+            color: #ffffff !important;
+            margin-bottom: 15px;
+            padding: 16px;
+        }
+
+        /* Live Balance Box */
+        .balance-card {
+            text-align: center;
+            background: linear-gradient(135deg, #16222f 0%, #0a1118 100%) !important;
+            border: 1px solid #007bff !important;
+        }
+        .balance-card h4 { margin: 0 0 5px 0; font-size: 13px; color: #94a3b8; text-transform: uppercase; }
+        .balance-card .bal-value { font-size: 22px; font-weight: bold; color: #28a745; }
+
+        .clickable-card {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .clickable-card h2 { color: #ffffff !important; margin: 0 0 5px 0; font-size: 18px; }
+        .clickable-card p { color: #94a3b8 !important; margin: 2px 0; font-size: 14px; }
+        .card-dark h3 { color: #ffffff !important; margin: 0 0 10px 0; font-size: 16px; }
+
+        /* Custom Input styling inside dark card */
+        .card-dark input {
+            width: 100%;
+            padding: 12px;
+            background: #080e18 !important;
+            border: 1px solid #334155 !important;
+            color: #ffffff !important;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .card-dark input::placeholder {
+            color: #64748b;
+        }
+        
+        .redeem-btn { 
+            cursor: pointer; 
+            width: 100%; 
+            padding: 14px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 8px; 
+            background: #007bff; 
+            color: #ffffff; 
+            font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+            margin-top: 10px;
+        }
+        .redeem-btn:disabled { background: #6c757d; cursor: not-allowed; box-shadow: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <button class="back-btn" type="button" id="backNavBtn">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h2>Redeem</h2>
+        <div style="width:20px;"></div>
+    </div>
+
+    <!-- Live Mining Balance Box -->
+    <div class="card-dark balance-card">
+        <h4>Available Mining Balance</h4>
+        <div class="bal-value" id="redeemBalance">0 BABYDOGE</div>
+    </div>
+
+    <!-- Main Options Page -->
+    <div id="optionPage">
+        <div class="card-dark clickable-card" id="binanceCard">
+            <div style="font-size: 24px;">💎</div>
+            <div style="flex-grow: 1; margin-left: 12px;">
+                <h2>Binance Redeem</h2>
+                <p>Minimum Redeem : 1,000,000 BABYDOGE</p>
+                <p>No Redeem Fees</p>
+            </div>
+            <div><i class="fa-solid fa-chevron-right" style="color: #94a3b8;"></i></div>
+        </div>
+    </div>
+
+    <!-- Binance Form -->
+    <div id="binancePage" style="display: none;">
+        <div class="card-dark">
+            <h3>Binance UID / Pay ID</h3>
+            <input type="text" id="binanceUidInput" placeholder="Enter Your Binance ID">
+        </div>
+
+        <div class="card-dark">
+            <h3>Redeem Amount</h3>
+            <input type="number" id="binanceAmountInput" placeholder="Minimum 1000000">
+        </div>
+
+        <button class="redeem-btn" type="button" id="binanceSubmitBtn">Redeem Now</button>
+    </div>
+
+</div>
+
+<script>
+const API = "https://weekly-contest-719v.onrender.com/api";
+const MIN_REDEEM_AMOUNT = 1000000; // 1 Million Limit
+let activeView = "optionPage";
+
+function setScreen(viewName) {
+    activeView = viewName;
+    document.getElementById("optionPage").style.display = (viewName === "optionPage") ? "block" : "none";
+    document.getElementById("binancePage").style.display = (viewName === "binancePage") ? "block" : "none";
+}
+
+function getUserId() {
+    try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+            return window.Telegram.WebApp.initDataUnsafe.user.id;
+        }
+    } catch(e) {}
+    return localStorage.getItem("userId") || "demo_user";
+}
+
+function updateInitialBalanceDisplay() {
+    const balance = Number(localStorage.getItem("totalBalance")) || 0;
+    const redeemBalanceElem = document.getElementById("redeemBalance");
+    if (redeemBalanceElem) {
+        redeemBalanceElem.innerText = Math.floor(balance).toLocaleString() + " BABYDOGE";
+    }
+}
+
+function initRedeemUI() {
+    setScreen("optionPage");
+    updateInitialBalanceDisplay();
+
+    // Pre-fill Binance ID if stored locally
+    const savedBinanceId = localStorage.getItem("binanceId");
+    if (savedBinanceId) {
+        document.getElementById("binanceUidInput").value = savedBinanceId;
+    }
+
+    document.getElementById("binanceCard").onclick = function() { 
+        setScreen("binancePage"); 
+    };
+
+    document.getElementById("backNavBtn").onclick = function() {
+        if (activeView === "binancePage") {
+            setScreen("optionPage");
+        } else {
+            window.location.href = "index.html";
+        }
+    };
+
+    document.getElementById("binanceSubmitBtn").onclick = async function(e) {
+        e.preventDefault();
+        
+        const walletInput = document.getElementById("binanceUidInput");
+        const amountInput = document.getElementById("binanceAmountInput");
+        
+        const wallet = walletInput.value.trim();
+        const amount = Number(amountInput.value);
+        const userId = getUserId();
+        let currentBalance = Number(localStorage.getItem("totalBalance")) || 0;
+
+        if (!wallet) return alert("Please enter a valid Binance Pay ID.");
+        if (isNaN(amount) || amount < MIN_REDEEM_AMOUNT) {
+            return alert("❌ Minimum withdrawal is 1,000,000 BABYDOGE.");
+        }
+        if (amount > currentBalance) {
+            return alert("❌ Insufficient Balance!");
+        }
+
+        // Save wallet ID for future quick withdrawal
+        localStorage.setItem("binanceId", wallet);
+
+        this.disabled = true;
+        this.innerText = "Processing...";
+
+        try {
+            const res = await fetch(`${API}/redeem`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    userId: String(userId).trim(), 
+                    wallet: wallet,
+                    address: wallet,
+                    amount: amount, 
+                    type: "binance"
+                })
+            });
+            
+            const data = await res.json();
+
+            if (res.ok && data.error === undefined) {
+                currentBalance -= amount;
+                localStorage.setItem("totalBalance", currentBalance);
+                updateInitialBalanceDisplay();
+                alert("✅ Withdrawal Request Submitted Successfully!");
+                amountInput.value = "";
+                setScreen("optionPage");
+            } else {
+                alert("Server Response: " + (data.message || data.error || JSON.stringify(data)));
+            }
+        } catch (err) {
+            console.error("Redeem Network Error:", err);
+            alert("⚠️ Connection Error. Please check your internet connection and try again.");
+        } finally {
+            this.disabled = false;
+            this.innerText = "Redeem Now";
+        }
+    };
+}
+
+window.addEventListener("pageshow", function(e) {
+    setScreen("optionPage");
+    updateInitialBalanceDisplay();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+    } catch(e) {}
+    initRedeemUI();
+});
+</script>
+
+<!-- Global Background Mining System -->
+<script src="js/global-miner.js"></script>
+
+</body>
+</html>
