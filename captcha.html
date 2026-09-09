@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- 1. Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <!-- 2. OnClickA TMA Ad SDK (Added to Head) -->
+    <!-- 1. OnClickA TMA Ad SDK (Sahi Head Position) -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+
+    <!-- 2. Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
         * { box-sizing: border-box; touch-action: manipulation; font-family: sans-serif; }
@@ -130,7 +130,7 @@
             Watch 15 Ads to activate 1 Miner (+500 BABYDOGE/sec)
         </p>
         <div class="progress-text" id="adCounterText">Progress: 0 / 15 Ads</div>
-        <button class="ad-btn" id="watchAdBtn" onclick="handleAdClick()">WATCH AD</button>
+        <button class="ad-btn" id="watchAdBtn" type="button" onclick="handleAdClick()">WATCH AD</button>
     </div>
 
     <!-- 5. Highlighted Notice -->
@@ -140,9 +140,9 @@
 
 </div>
 
-<!-- External Ad Mining Script -->
-<script src="js/captcha.js"></script>
-<script src="js/global-miner.js"></script>
+<!-- External Scripts -->
+<script src="./js/captcha.js"></script>
+<script src="./js/global-miner.js"></script>
 
 </body>
 </html>
