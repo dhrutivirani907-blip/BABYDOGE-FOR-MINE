@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initOnClickA();
     updateUI();
 
-    // Force bind click event for mobile WebView support
+    // Event Listener fallback for mobile WebView
     const watchBtn = document.getElementById("watchAdBtn");
     if (watchBtn) {
         watchBtn.removeEventListener("click", handleAdClick);
@@ -110,7 +110,7 @@ function handleAdClick(e) {
         btn.innerText = "⏳ Requesting Ad...";
     }
 
-    // Attempt 1: Using initialized `window.show`
+    // Attempt 1: Using initialized window.show
     if (typeof window.show === 'function') {
         window.show()
             .then(() => {
@@ -125,7 +125,7 @@ function handleAdClick(e) {
                 resetButtonState();
             });
     } 
-    // Attempt 2: Fallback initialization
+    // Attempt 2: Fallback initialization on demand
     else if (window.initCdTma) {
         window.initCdTma({ id: SPOT_ID })
             .then(show => {
@@ -180,3 +180,6 @@ function resetButtonState() {
         btn.innerText = "WATCH AD";
     }
 }
+
+// 💥 EXPLICIT GLOBAL BINDING (Fixes "ReferenceError: handleAdClick is not defined")
+window.handleAdClick = handleAdClick;
