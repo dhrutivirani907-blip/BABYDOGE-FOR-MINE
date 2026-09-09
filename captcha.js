@@ -14,6 +14,9 @@ let totalBalance = Number(localStorage.getItem("totalBalance")) || 0;
 let adsWatched = Number(localStorage.getItem("adsWatchedCount")) || 0;
 let activeMiners = JSON.parse(localStorage.getItem("activeMinersList")) || [];
 
+// Expose click handler globally early in the execution context
+window.handleAdClick = handleAdClick;
+
 // --------------------------------------------
 // OnClickA SDK Safe Initialization
 // --------------------------------------------
@@ -45,10 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initOnClickA();
     updateUI();
 
-    // Event Listener fallback for mobile WebView
+    // Bind event directly via JS to ensure mobile WebView compatibility
     const watchBtn = document.getElementById("watchAdBtn");
     if (watchBtn) {
-        watchBtn.removeEventListener("click", handleAdClick);
         watchBtn.addEventListener("click", handleAdClick);
     }
 });
@@ -180,6 +182,3 @@ function resetButtonState() {
         btn.innerText = "WATCH AD";
     }
 }
-
-// 💥 EXPLICIT GLOBAL BINDING (Fixes "ReferenceError: handleAdClick is not defined")
-window.handleAdClick = handleAdClick;
