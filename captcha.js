@@ -15,7 +15,7 @@ let adsWatched = Number(localStorage.getItem("adsWatchedCount")) || 0;
 let activeMiners = JSON.parse(localStorage.getItem("activeMinersList")) || [];
 
 // --------------------------------------------
-// OnClickA SDK Safe Initialization
+// OnClickA SDK Initialization
 // --------------------------------------------
 function initOnClickA() {
     if (window.initCdTma) {
@@ -24,7 +24,9 @@ function initOnClickA() {
                 window.show = show;
                 console.log("OnClickA Ad SDK Successfully Initialized!");
             })
-            .catch(e => console.error('OnClickA Ad Init Error:', e));
+            .catch(e => {
+                console.error('OnClickA Ad Init Error:', e);
+            });
     } else {
         setTimeout(initOnClickA, 500);
     }
@@ -50,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 setInterval(() => {
     const now = Date.now();
     
-    // Filter & Remove Expired Miners (> 1 Hour old)
+    // Remove Expired Miners (> 1 Hour old)
     const validMiners = activeMiners.filter(expiryTime => expiryTime > now);
     
     if (validMiners.length !== activeMiners.length) {
@@ -58,7 +60,7 @@ setInterval(() => {
         localStorage.setItem("activeMinersList", JSON.stringify(activeMiners));
     }
 
-    // Add Mining Reward for all active miners
+    // Add Mining Reward
     if (activeMiners.length > 0) {
         const minedAmount = activeMiners.length * MINING_RATE_PER_SEC;
         totalBalance += minedAmount;
@@ -88,7 +90,7 @@ function updateUI() {
 }
 
 // --------------------------------------------
-// OnClickA SDK Ad Click Handler
+// OnClickA Ad Click Handler with Detailed Error Catching
 // --------------------------------------------
 function handleAdClick() {
     const btn = document.getElementById("watchAdBtn");
@@ -99,6 +101,7 @@ function handleAdClick() {
         btn.innerText = "⏳ Loading Ad...";
     }
 
+    // Attempt 1: Using already initialized `window.show`
     if (typeof window.show === 'function') {
         window.show()
             .then(() => {
@@ -106,12 +109,14 @@ function handleAdClick() {
             })
             .catch((e) => {
                 console.error("Ad Show Error:", e);
-                alert("⚠️ Ad show nahi hua ya user ne close kar diya.");
+                const errDetail = typeof e === 'object' ? JSON.stringify(e) : e;
+                alert("⚠️ Ad Error: " + (errDetail || "No fill ya user ne ad cancel kar diya."));
             })
             .finally(() => {
                 resetButtonState();
             });
     } 
+    // Attempt 2: Fallback initialization on click
     else if (window.initCdTma) {
         window.initCdTma({ id: SPOT_ID })
             .then(show => {
@@ -123,14 +128,16 @@ function handleAdClick() {
             })
             .catch((e) => {
                 console.error("Ad Fallback Error:", e);
-                alert("⚠️ Ad Server Error: " + (e?.message || "Connection Failed"));
+                const errDetail = typeof e === 'object' ? JSON.stringify(e) : e;
+                alert("⚠️ SDK Init Error: " + (errDetail || "Ad Server se connect nahi ho paya."));
             })
             .finally(() => {
                 resetButtonState();
             });
     } 
+    // Attempt 3: SDK script not present in head
     else {
-        alert("⏳ Ad SDK load nahi hua. Kripya page refresh karke 3-4 seconds baad try karein.");
+        alert("⚠️ OnClickA tma.js SDK script HTML me load nahi hui hai.");
         resetButtonState();
     }
 }
