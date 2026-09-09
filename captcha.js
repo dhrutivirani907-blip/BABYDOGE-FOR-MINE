@@ -15,7 +15,7 @@ let adsWatched = Number(localStorage.getItem("adsWatchedCount")) || 0;
 let activeMiners = JSON.parse(localStorage.getItem("activeMinersList")) || [];
 
 // --------------------------------------------
-// OnClickA SDK Initialization
+// OnClickA SDK Safe Initialization
 // --------------------------------------------
 function initOnClickA() {
     if (window.initCdTma) {
@@ -44,6 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initOnClickA();
     updateUI();
+
+    // Force bind click event for mobile WebView support
+    const watchBtn = document.getElementById("watchAdBtn");
+    if (watchBtn) {
+        watchBtn.removeEventListener("click", handleAdClick);
+        watchBtn.addEventListener("click", handleAdClick);
+    }
 });
 
 // --------------------------------------------
@@ -90,33 +97,35 @@ function updateUI() {
 }
 
 // --------------------------------------------
-// OnClickA Ad Click Handler with Detailed Error Catching
+// OnClickA Ad Click Handler
 // --------------------------------------------
-function handleAdClick() {
+function handleAdClick(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
     const btn = document.getElementById("watchAdBtn");
     if (btn && btn.disabled) return;
 
     if (btn) {
         btn.disabled = true;
-        btn.innerText = "⏳ Loading Ad...";
+        btn.innerText = "⏳ Requesting Ad...";
     }
 
-    // Attempt 1: Using already initialized `window.show`
+    // Attempt 1: Using initialized `window.show`
     if (typeof window.show === 'function') {
         window.show()
             .then(() => {
                 processAdCompletion();
             })
-            .catch((e) => {
-                console.error("Ad Show Error:", e);
-                const errDetail = typeof e === 'object' ? JSON.stringify(e) : e;
-                alert("⚠️ Ad Error: " + (errDetail || "No fill ya user ne ad cancel kar diya."));
+            .catch((err) => {
+                console.error("Ad Show Error:", err);
+                const msg = typeof err === 'object' ? JSON.stringify(err) : err;
+                alert("⚠️ Ad Error: " + (msg || "No fill ya user ne close kar diya."));
             })
             .finally(() => {
                 resetButtonState();
             });
     } 
-    // Attempt 2: Fallback initialization on click
+    // Attempt 2: Fallback initialization
     else if (window.initCdTma) {
         window.initCdTma({ id: SPOT_ID })
             .then(show => {
@@ -126,16 +135,16 @@ function handleAdClick() {
             .then(() => {
                 processAdCompletion();
             })
-            .catch((e) => {
-                console.error("Ad Fallback Error:", e);
-                const errDetail = typeof e === 'object' ? JSON.stringify(e) : e;
-                alert("⚠️ SDK Init Error: " + (errDetail || "Ad Server se connect nahi ho paya."));
+            .catch((err) => {
+                console.error("Ad Fallback Error:", err);
+                const msg = typeof err === 'object' ? JSON.stringify(err) : err;
+                alert("⚠️ SDK Init Error: " + (msg || "Ad Server connect nahi ho paya."));
             })
             .finally(() => {
                 resetButtonState();
             });
     } 
-    // Attempt 3: SDK script not present in head
+    // Attempt 3: SDK script missing
     else {
         alert("⚠️ OnClickA tma.js SDK script HTML me load nahi hui hai.");
         resetButtonState();
@@ -149,7 +158,7 @@ async function processAdCompletion() {
     adsWatched += 1;
 
     if (adsWatched >= ADS_PER_MINER) {
-        adsWatched = 0; // Reset counter for next miner cycle
+        adsWatched = 0; // Reset counter for next cycle
         
         const expiryTime = Date.now() + MINER_DURATION_MS;
         activeMiners.push(expiryTime);
