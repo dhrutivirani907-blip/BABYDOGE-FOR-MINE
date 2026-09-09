@@ -130,7 +130,9 @@
             Watch 15 Ads to activate 1 Miner (+500 BABYDOGE/sec)
         </p>
         <div class="progress-text" id="adCounterText">Progress: 0 / 15 Ads</div>
-        <button class="ad-btn" id="watchAdBtn" type="button" onclick="handleAdClick()">WATCH AD</button>
+        
+        <!-- FIXED: Removed onclick="handleAdClick()" to prevent ReferenceError -->
+        <button class="ad-btn" id="watchAdBtn" type="button">WATCH AD</button>
     </div>
 
     <!-- Highlighted Notice -->
