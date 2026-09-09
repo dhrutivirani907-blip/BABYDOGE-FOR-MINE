@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- 1. OnClickA TMA Ad SDK (Sahi Head Position) -->
+    <!-- 1. OnClickA TMA Ad SDK -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
 
     <!-- 2. Telegram WebApp SDK -->
@@ -24,7 +24,7 @@
         .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #333; }
         
-        /* 1. Coin Logo Styling */
+        /* Coin Logo */
         .coin-logo { 
             width: 80px; 
             height: 80px; 
@@ -38,7 +38,7 @@
         }
         .coin-logo i { font-size: 45px; color: #ffffff; }
 
-        /* Summary Boxes (2 & 3) */
+        /* Summary Boxes */
         .summary-box { 
             background: #ffffff; 
             border: 1px solid #e0e0e0; 
@@ -50,7 +50,7 @@
         .summary-box h4 { margin: 0 0 5px 0; color: #666; font-size: 13px; text-transform: uppercase; }
         .summary-box .value { font-size: 22px; font-weight: bold; color: #28a745; }
 
-        /* 4. Mining Power Box */
+        /* Mining Power Box */
         .miner-box { 
             background: #ffffff; 
             border: 2px solid #007bff; 
@@ -76,7 +76,7 @@
         }
         .ad-btn:disabled { background: #6c757d; cursor: not-allowed; }
 
-        /* 5. Highlighted Notice Card */
+        /* Notice Card */
         .notice-card { 
             background: #fff3cd; 
             color: #856404; 
@@ -104,24 +104,24 @@
         <div style="width:20px;"></div>
     </div>
 
-    <!-- 1. Coin Logo -->
+    <!-- Coin Logo -->
     <div class="coin-logo">
         <i class="fa-solid fa-coins"></i>
     </div>
 
-    <!-- 2. Total Mined Amount Box -->
+    <!-- Total Mined Amount Box -->
     <div class="summary-box">
         <h4>TOTAL MINED BALANCE</h4>
         <div class="value" id="minedDisplay">0 BABYDOGE</div>
     </div>
 
-    <!-- 3. Total Active Miners Box -->
+    <!-- Total Active Miners Box -->
     <div class="summary-box">
         <h4>TOTAL ACTIVE MINERS</h4>
         <div class="value" style="color:#007bff;" id="activeMinersDisplay">0 Active</div>
     </div>
 
-    <!-- 4. Mining Power Action Box -->
+    <!-- Mining Power Action Box -->
     <div class="miner-box">
         <div class="miner-title">
             <i class="fa-solid fa-bolt" style="color:#ff9900;"></i> 100TH MINING POWER
@@ -133,16 +133,16 @@
         <button class="ad-btn" id="watchAdBtn" type="button" onclick="handleAdClick()">WATCH AD</button>
     </div>
 
-    <!-- 5. Highlighted Notice -->
+    <!-- Highlighted Notice -->
     <div class="notice-card">
         <i class="fa-solid fa-triangle-exclamation"></i> <strong>NOTICE:</strong> 1 miner is active for 1 hour. After 1 hour, miner will be removed.
     </div>
 
 </div>
 
-<!-- External Scripts -->
-<script src="./js/captcha.js"></script>
-<script src="./js/global-miner.js"></script>
+<!-- Scripts -->
+<script src="js/captcha.js"></script>
+<script src="js/global-miner.js"></script>
 
 </body>
 </html>
