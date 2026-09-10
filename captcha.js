@@ -110,12 +110,17 @@ window.addEventListener("blur", () => {
 function startMonetagAd() {
     closeInstructionModal();
 
-    if (typeof show_11766459 !== "function") {
-        alert("⚠️ Ad SDK failed to load. Please disable AdBlocker or check your internet connection.");
+    const watchBtn = document.getElementById("watchAdBtn");
+
+    // Safe Global Check for Monetag SDK Function
+    const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
+
+    if (!adTriggerFunction) {
+        alert("⚠️ Monetag Ad SDK failed to load. Please check your internet connection or disable AdBlocker/Private DNS.");
+        resetButtonState();
         return;
     }
 
-    const watchBtn = document.getElementById("watchAdBtn");
     if (watchBtn) {
         watchBtn.disabled = true;
         watchBtn.innerText = "⏳ Watching Ad...";
@@ -125,15 +130,21 @@ function startMonetagAd() {
     adClicked = false;
     isTrackingAd = true;
 
-    show_11766459()
-        .then(() => {
-            verifyAdRules();
-        })
-        .catch((err) => {
-            console.error("Monetag Execution Error:", err);
-            alert("⚠️ Ad display was interrupted or failed to load properly.");
-            resetButtonState();
-        });
+    try {
+        adTriggerFunction()
+            .then(() => {
+                verifyAdRules();
+            })
+            .catch((err) => {
+                console.error("Monetag Execution Error:", err);
+                alert("⚠️ Ad display was interrupted or closed prematurely.");
+                resetButtonState();
+            });
+    } catch (err) {
+        console.error("Monetag Call Exception:", err);
+        alert("⚠️ Could not initialize ad playback.");
+        resetButtonState();
+    }
 }
 
 // Strict Verification Layer
