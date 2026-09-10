@@ -1,184 +1,187 @@
-// ============================================
-// OnClickA SDK & Multi-Miner Mining System
-// ============================================
-
-const SPOT_ID = '6151066';
-const ADS_PER_MINER = 15; 
-const MINING_RATE_PER_SEC = 500; // 1 Miner = +500 BABYDOGE/sec
+// Configuration Settings
+const ADS_PER_MINER = 25; 
+const MINING_RATE_PER_SEC = 500;
 const MINER_DURATION_MS = 60 * 60 * 1000; // 1 Hour
 
-// --------------------------------------------
-// Local Storage State Management
-// --------------------------------------------
-let totalBalance = Number(localStorage.getItem("totalBalance")) || 0;
-let adsWatched = Number(localStorage.getItem("adsWatchedCount")) || 0;
-let activeMiners = JSON.parse(localStorage.getItem("activeMinersList")) || [];
+// Storage Keys
+const STORAGE_KEYS = {
+    BALANCE: "totalBalance",
+    ADS_COUNT: "adsWatchedCount",
+    MINERS: "activeMinersList",
+    LAST_TICK: "lastTickTimestamp"
+};
 
-// Expose click handler globally early in the execution context
-window.handleAdClick = handleAdClick;
+// Application State Variables
+let totalBalance = Number(localStorage.getItem(STORAGE_KEYS.BALANCE)) || 0;
+let adsWatched = Number(localStorage.getItem(STORAGE_KEYS.ADS_COUNT)) || 0;
+let activeMiners = [];
+let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
 
-// --------------------------------------------
-// OnClickA SDK Safe Initialization
-// --------------------------------------------
-function initOnClickA() {
-    if (window.initCdTma) {
-        window.initCdTma({ id: SPOT_ID })
-            .then(show => {
-                window.show = show;
-                console.log("OnClickA Ad SDK Successfully Initialized!");
-            })
-            .catch(e => {
-                console.error('OnClickA Ad Init Error:', e);
-            });
-    } else {
-        setTimeout(initOnClickA, 500);
-    }
+let adStartTime = 0;
+let adClicked = false;
+let isTrackingAd = false;
+
+// Safe LocalStorage Parser
+try {
+    const rawMiners = localStorage.getItem(STORAGE_KEYS.MINERS);
+    activeMiners = rawMiners ? JSON.parse(rawMiners) : [];
+    if (!Array.isArray(activeMiners)) activeMiners = [];
+} catch (e) {
+    console.error("Failed to parse miners state:", e);
+    activeMiners = [];
 }
 
+// Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
+    initTelegramApp();
+    updateUI();
+});
+
+function initTelegramApp() {
     try {
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
     } catch (e) {
-        console.error("Telegram WebApp Error:", e);
+        console.warn("Telegram WebApp initialization bypassed:", e);
     }
+}
 
-    initOnClickA();
-    updateUI();
-
-    // Bind event directly via JS to ensure mobile WebView compatibility
-    const watchBtn = document.getElementById("watchAdBtn");
-    if (watchBtn) {
-        watchBtn.addEventListener("click", handleAdClick);
-    }
-});
-
-// --------------------------------------------
-// Real-Time Mining Engine (Executes Every 1 Second)
-// --------------------------------------------
+// Background Mining Engine Tick (1 Sec)
 setInterval(() => {
     const now = Date.now();
-    
-    // Remove Expired Miners (> 1 Hour old)
+    const deltaSeconds = Math.max(0, (now - lastTickTime) / 1000);
+    lastTickTime = now;
+    localStorage.setItem(STORAGE_KEYS.LAST_TICK, lastTickTime.toString());
+
+    // Filter active miners
     const validMiners = activeMiners.filter(expiryTime => expiryTime > now);
-    
     if (validMiners.length !== activeMiners.length) {
         activeMiners = validMiners;
-        localStorage.setItem("activeMinersList", JSON.stringify(activeMiners));
+        localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
     }
 
-    // Add Mining Reward
-    if (activeMiners.length > 0) {
-        const minedAmount = activeMiners.length * MINING_RATE_PER_SEC;
-        totalBalance += minedAmount;
-        localStorage.setItem("totalBalance", totalBalance);
+    // Process mining earnings
+    if (activeMiners.length > 0 && deltaSeconds > 0) {
+        totalBalance += activeMiners.length * MINING_RATE_PER_SEC * deltaSeconds;
+        localStorage.setItem(STORAGE_KEYS.BALANCE, totalBalance.toString());
     }
 
     updateUI();
 }, 1000);
 
-// --------------------------------------------
 // UI Renderer
-// --------------------------------------------
 function updateUI() {
     const minedDisplay = document.getElementById("minedDisplay");
     const activeMinersDisplay = document.getElementById("activeMinersDisplay");
     const adCounterText = document.getElementById("adCounterText");
 
     if (minedDisplay) {
-        minedDisplay.innerText = Math.floor(totalBalance).toLocaleString() + " BABYDOGE";
+        minedDisplay.innerText = `${Math.floor(totalBalance).toLocaleString()} BABYDOGE`;
     }
     if (activeMinersDisplay) {
-        activeMinersDisplay.innerText = activeMiners.length + " Active";
+        activeMinersDisplay.innerText = `${activeMiners.length} Active`;
     }
     if (adCounterText) {
         adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
     }
 }
 
-// --------------------------------------------
-// OnClickA Ad Click Handler
-// --------------------------------------------
-function handleAdClick(e) {
-    if (e && e.preventDefault) e.preventDefault();
-
-    const btn = document.getElementById("watchAdBtn");
-    if (btn && btn.disabled) return;
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerText = "⏳ Requesting Ad...";
-    }
-
-    // Attempt 1: Using initialized window.show
-    if (typeof window.show === 'function') {
-        window.show()
-            .then(() => {
-                processAdCompletion();
-            })
-            .catch((err) => {
-                console.error("Ad Show Error:", err);
-                const msg = typeof err === 'object' ? JSON.stringify(err) : err;
-                alert("⚠️ Ad Error: " + (msg || "No fill ya user ne close kar diya."));
-            })
-            .finally(() => {
-                resetButtonState();
-            });
-    } 
-    // Attempt 2: Fallback initialization on demand
-    else if (window.initCdTma) {
-        window.initCdTma({ id: SPOT_ID })
-            .then(show => {
-                window.show = show;
-                return window.show();
-            })
-            .then(() => {
-                processAdCompletion();
-            })
-            .catch((err) => {
-                console.error("Ad Fallback Error:", err);
-                const msg = typeof err === 'object' ? JSON.stringify(err) : err;
-                alert("⚠️ SDK Init Error: " + (msg || "Ad Server connect nahi ho paya."));
-            })
-            .finally(() => {
-                resetButtonState();
-            });
-    } 
-    // Attempt 3: SDK script missing
-    else {
-        alert("⚠️ OnClickA tma.js SDK script HTML me load nahi hui hai.");
-        resetButtonState();
-    }
+// Modal Handlers
+function openInstructionModal() {
+    const modal = document.getElementById("instructionModal");
+    if (modal) modal.style.display = "flex";
 }
 
-// --------------------------------------------
-// Ad Verification & Miner Allocation Logic
-// --------------------------------------------
-async function processAdCompletion() {
+function closeInstructionModal() {
+    const modal = document.getElementById("instructionModal");
+    if (modal) modal.style.display = "none";
+}
+
+// Detect window blur for ad interaction verification
+window.addEventListener("blur", () => {
+    if (isTrackingAd) {
+        adClicked = true;
+    }
+});
+
+// Ad Execution Logic
+function startMonetagAd() {
+    closeInstructionModal();
+
+    if (typeof show_11766459 !== "function") {
+        alert("⚠️ Ad SDK failed to load. Please disable AdBlocker or check your internet connection.");
+        return;
+    }
+
+    const watchBtn = document.getElementById("watchAdBtn");
+    if (watchBtn) {
+        watchBtn.disabled = true;
+        watchBtn.innerText = "⏳ Watching Ad...";
+    }
+
+    adStartTime = Date.now();
+    adClicked = false;
+    isTrackingAd = true;
+
+    show_11766459()
+        .then(() => {
+            verifyAdRules();
+        })
+        .catch((err) => {
+            console.error("Monetag Execution Error:", err);
+            alert("⚠️ Ad display was interrupted or failed to load properly.");
+            resetButtonState();
+        });
+}
+
+// Strict Verification Layer
+function verifyAdRules() {
+    isTrackingAd = false;
+    const watchDurationSec = (Date.now() - adStartTime) / 1000;
+
+    if (watchDurationSec < 10) {
+        alert(`⚠️ Verification Failed!\n\nYou must watch the ad for at least 10 seconds. (Watched: ${Math.floor(watchDurationSec)}s)`);
+        resetButtonState();
+        return;
+    }
+
+    if (!adClicked) {
+        alert("⚠️ Verification Failed!\n\nYou must CLICK on the advertisement banner/link to earn ad credit.");
+        resetButtonState();
+        return;
+    }
+
+    processAdCompletion();
+    resetButtonState();
+}
+
+// Credit & Miner Rewards Handler
+function processAdCompletion() {
     adsWatched += 1;
 
     if (adsWatched >= ADS_PER_MINER) {
-        adsWatched = 0; // Reset counter for next cycle
-        
+        adsWatched = 0;
         const expiryTime = Date.now() + MINER_DURATION_MS;
         activeMiners.push(expiryTime);
-        localStorage.setItem("activeMinersList", JSON.stringify(activeMiners));
+        localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
 
-        alert(`🎉 Congratulations!\n\nAapne ${ADS_PER_MINER} Ads poore kar liye hain! 1 Naya Miner 1 ghante ke liye activate ho gaya hai (+500 BABYDOGE/sec).`);
+        alert(`🎉 Success!\n\nYou completed ${ADS_PER_MINER} verified ads! 1 New Miner activated for 1 hour (+500 BABYDOGE/sec).`);
     } else {
         alert(`✅ Ad Verified!\n\nProgress: ${adsWatched} / ${ADS_PER_MINER} Ads completed.`);
     }
 
-    localStorage.setItem("adsWatchedCount", adsWatched);
+    localStorage.setItem(STORAGE_KEYS.ADS_COUNT, adsWatched.toString());
     updateUI();
 }
 
+// Reset UI Button State
 function resetButtonState() {
-    const btn = document.getElementById("watchAdBtn");
-    if (btn) {
-        btn.disabled = false;
-        btn.innerText = "WATCH AD";
+    isTrackingAd = false;
+    const watchBtn = document.getElementById("watchAdBtn");
+    if (watchBtn) {
+        watchBtn.disabled = false;
+        watchBtn.innerText = "WATCH AD";
     }
 }
