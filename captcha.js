@@ -31,10 +31,74 @@ try {
     activeMiners = [];
 }
 
-// Initialize Application
+// Global Window Functions for HTML Buttons
+window.openInstructionModal = function() {
+    const modal = document.getElementById("instructionModal");
+    if (modal) {
+        modal.style.display = "flex";
+    } else {
+        console.error("Modal element #instructionModal not found!");
+    }
+};
+
+window.closeInstructionModal = function() {
+    const modal = document.getElementById("instructionModal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+};
+
+window.startMonetagAd = function() {
+    window.closeInstructionModal();
+
+    const watchBtn = document.getElementById("watchAdBtn");
+    const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
+
+    if (!adTriggerFunction) {
+        alert("⚠️ Monetag Ad SDK failed to load. Please check your internet connection or disable AdBlocker/Private DNS.");
+        resetButtonState();
+        return;
+    }
+
+    if (watchBtn) {
+        watchBtn.disabled = true;
+        watchBtn.innerText = "⏳ Watching Ad...";
+    }
+
+    adStartTime = Date.now();
+    adClicked = false;
+    isTrackingAd = true;
+
+    try {
+        adTriggerFunction()
+            .then(() => {
+                verifyAdRules();
+            })
+            .catch((err) => {
+                console.error("Monetag Execution Error:", err);
+                alert("⚠️ Ad display was interrupted or closed prematurely.");
+                resetButtonState();
+            });
+    } catch (err) {
+        console.error("Monetag Call Exception:", err);
+        alert("⚠️ Could not initialize ad playback.");
+        resetButtonState();
+    }
+};
+
+// Initialize Application & Bind Event Listeners
 document.addEventListener("DOMContentLoaded", () => {
     initTelegramApp();
     updateUI();
+
+    // Direct JS Event Listener Binding to fix Click Issue
+    const watchBtn = document.getElementById("watchAdBtn");
+    if (watchBtn) {
+        watchBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.openInstructionModal();
+        });
+    }
 });
 
 function initTelegramApp() {
@@ -88,64 +152,12 @@ function updateUI() {
     }
 }
 
-// Modal Handlers
-function openInstructionModal() {
-    const modal = document.getElementById("instructionModal");
-    if (modal) modal.style.display = "flex";
-}
-
-function closeInstructionModal() {
-    const modal = document.getElementById("instructionModal");
-    if (modal) modal.style.display = "none";
-}
-
 // Detect window blur for ad interaction verification
 window.addEventListener("blur", () => {
     if (isTrackingAd) {
         adClicked = true;
     }
 });
-
-// Ad Execution Logic
-function startMonetagAd() {
-    closeInstructionModal();
-
-    const watchBtn = document.getElementById("watchAdBtn");
-
-    // Safe Global Check for Monetag SDK Function
-    const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
-
-    if (!adTriggerFunction) {
-        alert("⚠️ Monetag Ad SDK failed to load. Please check your internet connection or disable AdBlocker/Private DNS.");
-        resetButtonState();
-        return;
-    }
-
-    if (watchBtn) {
-        watchBtn.disabled = true;
-        watchBtn.innerText = "⏳ Watching Ad...";
-    }
-
-    adStartTime = Date.now();
-    adClicked = false;
-    isTrackingAd = true;
-
-    try {
-        adTriggerFunction()
-            .then(() => {
-                verifyAdRules();
-            })
-            .catch((err) => {
-                console.error("Monetag Execution Error:", err);
-                alert("⚠️ Ad display was interrupted or closed prematurely.");
-                resetButtonState();
-            });
-    } catch (err) {
-        console.error("Monetag Call Exception:", err);
-        alert("⚠️ Could not initialize ad playback.");
-        resetButtonState();
-    }
-}
 
 // Strict Verification Layer
 function verifyAdRules() {
