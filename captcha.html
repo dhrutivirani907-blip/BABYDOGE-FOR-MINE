@@ -53,7 +53,7 @@
             padding: 14px; font-size: 13px; font-weight: bold; line-height: 1.5; margin-top: 20px; text-align: left;
         }
 
-        /* Modal / Popup Styles */
+        /* Modal Styles */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;
@@ -114,15 +114,15 @@
 <!-- Instructions Modal Popup -->
 <div class="modal-overlay" id="instructionModal">
     <div class="modal-card">
-        <div class="modal-title">⚠️ Mandatory Ad Verification Rules</div>
+        <div class="modal-title">⚠️ Mandatory Rules</div>
         <div class="modal-desc">
-            To successfully register <b>1 Ad Credit</b>, please follow these instructions:
+            To successfully get <b>1 Ad Credit</b>:
             <br><br>
-            1️⃣ Click on the Ad or <b>Continue Button</b>.<br>
-            2️⃣ Browser me ad open hona compulsory hai.<br>
-            3️⃣ Ad open hone ke baad wapas app me aayein.
+            1️⃣ Watch Ad for at least <b>10 seconds</b>.<br>
+            2️⃣ Click anywhere on the Ad / Continue Button to open browser.<br>
+            3️⃣ Return back to the app.
             <br><br>
-            <i>Note: Bina Ad par click kiye credit nahi milega.</i>
+            <i>Note: Closing ad with X button without visiting link = 0 Credit.</i>
         </div>
         <button class="modal-btn" onclick="startMonetagAd()">UNDERSTOOD & WATCH AD</button>
     </div>
@@ -145,10 +145,10 @@
     let activeMiners = [];
     let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
 
-    // Verification Flags
+    // Verification Trackers
+    let adStartTime = 0;
     let isTrackingAd = false;
-    let userLeftApp = false;
-    let leaveTimestamp = 0;
+    let externalBrowserOpened = false;
 
     try {
         const rawMiners = localStorage.getItem(STORAGE_KEYS.MINERS);
@@ -168,6 +168,23 @@
         if (modal) modal.style.display = "none";
     };
 
+    // Tracking App Departure (External Browser Opening)
+    function handleVisibilityChange() {
+        if (!isTrackingAd) return;
+
+        const timeElapsed = (Date.now() - adStartTime) / 1000;
+
+        // When app goes to background (User clicked ad & external link opened)
+        if (document.visibilityState === "hidden" || document.hidden) {
+            if (timeElapsed >= 8) { // User spent enough time before clicking
+                externalBrowserOpened = true;
+            }
+        }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleVisibilityChange);
+
     window.startMonetagAd = function() {
         window.closeInstructionModal();
 
@@ -185,14 +202,17 @@
             watchBtn.innerText = "⏳ Watching Ad...";
         }
 
-        // Reset click tracking state
+        // Initialize Ad Tracking State
+        adStartTime = Date.now();
         isTrackingAd = true;
-        userLeftApp = false;
-        leaveTimestamp = 0;
+        externalBrowserOpened = false;
 
         try {
             adTriggerFunction()
-                .then(() => { verifyAdRules(); })
+                .then(() => { 
+                    // Small delay to let return-from-browser event process
+                    setTimeout(verifyAdRules, 500); 
+                })
                 .catch((err) => {
                     alert("⚠️ Ad was closed or interrupted.");
                     resetButtonState();
@@ -202,22 +222,6 @@
             resetButtonState();
         }
     };
-
-    // Tracking App Departure (Click on Ad Detection)
-    function handleUserLeft() {
-        if (isTrackingAd) {
-            userLeftApp = true;
-            leaveTimestamp = Date.now();
-        }
-    }
-
-    window.addEventListener("blur", handleUserLeft);
-    window.addEventListener("pagehide", handleUserLeft);
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") {
-            handleUserLeft();
-        }
-    });
 
     document.addEventListener("DOMContentLoaded", () => {
         try {
@@ -260,14 +264,21 @@
         if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
     }
 
-    // Strict Click Verification Logic
+    // Strict Verification Logic
     function verifyAdRules() {
-        const wasPageLeft = userLeftApp || (leaveTimestamp > 0);
+        const totalWatchDuration = (Date.now() - adStartTime) / 1000;
         isTrackingAd = false;
 
-        // Agar user ne ad par click karke browser open nahi kiya
-        if (!wasPageLeft) {
-            alert("⚠️ Click Verification Failed!\nAapne Ad par CLICK nahi kiya. Credit paane ke liye ad/continue button par click karna zaroori hai.");
+        // Condition 1: Minimum watch duration check (10 seconds)
+        if (totalWatchDuration < 10) {
+            alert("⚠️ Verification Failed!\nAapko kam se kam 10 second ad dekhna zaroori hai.");
+            resetButtonState();
+            return;
+        }
+
+        // Condition 2: External Link Opened Check (Did user click ad?)
+        if (!externalBrowserOpened) {
+            alert("⚠️ Click Verification Failed!\nAapne ad par click nahi kiya (Close button dabane par credit nahi milta). Credit paane ke liye ad par CLICK karna zaroori hai.");
             resetButtonState();
             return;
         }
@@ -284,7 +295,7 @@
             const expiryTime = Date.now() + MINER_DURATION_MS;
             activeMiners.push(expiryTime);
             localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
-            alert(`🎉 Success! 1 New Miner 1 ghante ke liye activate ho gaya hai.`);
+            alert(`🎉 Badhai ho! 1 New Miner 1 ghante ke liye activate ho gaya hai.`);
         } else {
             alert(`✅ Ad Verified! Progress: ${adsWatched} / ${ADS_PER_MINER}`);
         }
@@ -295,8 +306,7 @@
 
     function resetButtonState() {
         isTrackingAd = false;
-        userLeftApp = false;
-        leaveTimestamp = 0;
+        externalBrowserOpened = false;
 
         const watchBtn = document.getElementById("watchAdBtn");
         if (watchBtn) {
