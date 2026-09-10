@@ -7,8 +7,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- Monetag Rewarded Interstitial SDK -->
-    <script src="https://ks3114.com/vignette.min.js" data-zone="11766459" data-sdk="show_11766459"></script>
+    <!-- Monetag Rewarded Interstitial SDK (Updated Script Tag) -->
+    <script src="https://libtl.com/sdk.js" data-zone="11766459" data-sdk="show_11766459"></script>
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -132,7 +132,7 @@
     // Configuration Settings
     const ADS_PER_MINER = 25; 
     const MINING_RATE_PER_SEC = 500;
-    const MINER_DURATION_MS = 60 * 60 * 1000;
+    const MINER_DURATION_MS = 60 * 60 * 1000; // 1 Hour
 
     const STORAGE_KEYS = {
         BALANCE: "totalBalance",
@@ -173,10 +173,12 @@
         window.closeInstructionModal();
 
         const watchBtn = document.getElementById("watchAdBtn");
+        
+        // Monetag Trigger Check
         const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
 
         if (!adTriggerFunction) {
-            alert("⚠️ Ad SDK not loaded yet. If you have an AdBlocker active, please disable it.");
+            alert("⚠️ Ad SDK load nahi hui. Please AdBlocker disable karke check karein.");
             resetButtonState();
             return;
         }
@@ -214,6 +216,7 @@
         updateUI();
     });
 
+    // Mining Calculator Engine
     setInterval(() => {
         const now = Date.now();
         const deltaSeconds = Math.max(0, (now - lastTickTime) / 1000);
@@ -244,22 +247,24 @@
         if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
     }
 
+    // Track user clicking on the ad
     window.addEventListener("blur", () => {
         if (isTrackingAd) adClicked = true;
     });
 
+    // Verification Logic (10s Watch + Click Verification)
     function verifyAdRules() {
         isTrackingAd = false;
         const watchDurationSec = (Date.now() - adStartTime) / 1000;
 
         if (watchDurationSec < 10) {
-            alert(`⚠️ Verification Failed!\nYou must watch the ad for at least 10 seconds.`);
+            alert(`⚠️ Verification Failed!\nAapko kam se kam 10 seconds ad dekhna hoga.`);
             resetButtonState();
             return;
         }
 
         if (!adClicked) {
-            alert("⚠️ Verification Failed!\nYou must CLICK on the advertisement to get credit.");
+            alert("⚠️ Verification Failed!\nAapko credit paane ke liye ad par CLICK karna zaroori hai.");
             resetButtonState();
             return;
         }
@@ -276,7 +281,7 @@
             const expiryTime = Date.now() + MINER_DURATION_MS;
             activeMiners.push(expiryTime);
             localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
-            alert(`🎉 Success! 1 New Miner activated for 1 hour.`);
+            alert(`🎉 Badhai ho! 1 New Miner 1 ghante ke liye activate ho gaya hai.`);
         } else {
             alert(`✅ Ad Verified! Progress: ${adsWatched} / ${ADS_PER_MINER}`);
         }
