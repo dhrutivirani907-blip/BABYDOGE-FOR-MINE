@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- Monetag Rewarded Interstitial SDK (Updated Script Tag) -->
+    <!-- Monetag Rewarded Interstitial SDK -->
     <script src="https://libtl.com/sdk.js" data-zone="11766459" data-sdk="show_11766459"></script>
 
     <!-- Telegram WebApp SDK -->
@@ -118,21 +118,20 @@
         <div class="modal-desc">
             To successfully register <b>1 Ad Credit</b>, please follow these instructions:
             <br><br>
-            1️⃣ Watch the video advertisement for a <b>minimum of 10 seconds</b>.<br>
-            2️⃣ You <b>MUST CLICK ON THE AD</b> banner/button during or after watching.<br>
-            3️⃣ Return to the app after clicking.
+            1️⃣ Click on the Ad or <b>Continue Button</b>.<br>
+            2️⃣ Browser me ad open hona compulsory hai.<br>
+            3️⃣ Ad open hone ke baad wapas app me aayein.
             <br><br>
-            <i>Note: Closing the ad without clicking or watching for less than 10 seconds will result in <b>0 credit</b>.</i>
+            <i>Note: Bina Ad par click kiye credit nahi milega.</i>
         </div>
         <button class="modal-btn" onclick="startMonetagAd()">UNDERSTOOD & WATCH AD</button>
     </div>
 </div>
 
 <script>
-    // Configuration Settings
     const ADS_PER_MINER = 25; 
     const MINING_RATE_PER_SEC = 500;
-    const MINER_DURATION_MS = 60 * 60 * 1000; // 1 Hour
+    const MINER_DURATION_MS = 60 * 60 * 1000;
 
     const STORAGE_KEYS = {
         BALANCE: "totalBalance",
@@ -146,9 +145,10 @@
     let activeMiners = [];
     let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
 
-    let adStartTime = 0;
-    let adClicked = false;
+    // Verification Flags
     let isTrackingAd = false;
+    let userLeftApp = false;
+    let leaveTimestamp = 0;
 
     try {
         const rawMiners = localStorage.getItem(STORAGE_KEYS.MINERS);
@@ -158,7 +158,6 @@
         activeMiners = [];
     }
 
-    // Modal Control Functions (Global Scope)
     window.openInstructionModal = function() {
         const modal = document.getElementById("instructionModal");
         if (modal) modal.style.display = "flex";
@@ -173,8 +172,6 @@
         window.closeInstructionModal();
 
         const watchBtn = document.getElementById("watchAdBtn");
-        
-        // Monetag Trigger Check
         const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
 
         if (!adTriggerFunction) {
@@ -188,9 +185,10 @@
             watchBtn.innerText = "⏳ Watching Ad...";
         }
 
-        adStartTime = Date.now();
-        adClicked = false;
+        // Reset click tracking state
         isTrackingAd = true;
+        userLeftApp = false;
+        leaveTimestamp = 0;
 
         try {
             adTriggerFunction()
@@ -205,6 +203,22 @@
         }
     };
 
+    // Tracking App Departure (Click on Ad Detection)
+    function handleUserLeft() {
+        if (isTrackingAd) {
+            userLeftApp = true;
+            leaveTimestamp = Date.now();
+        }
+    }
+
+    window.addEventListener("blur", handleUserLeft);
+    window.addEventListener("pagehide", handleUserLeft);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+            handleUserLeft();
+        }
+    });
+
     document.addEventListener("DOMContentLoaded", () => {
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -216,7 +230,6 @@
         updateUI();
     });
 
-    // Mining Calculator Engine
     setInterval(() => {
         const now = Date.now();
         const deltaSeconds = Math.max(0, (now - lastTickTime) / 1000);
@@ -247,24 +260,14 @@
         if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
     }
 
-    // Track user clicking on the ad
-    window.addEventListener("blur", () => {
-        if (isTrackingAd) adClicked = true;
-    });
-
-    // Verification Logic (10s Watch + Click Verification)
+    // Strict Click Verification Logic
     function verifyAdRules() {
+        const wasPageLeft = userLeftApp || (leaveTimestamp > 0);
         isTrackingAd = false;
-        const watchDurationSec = (Date.now() - adStartTime) / 1000;
 
-        if (watchDurationSec < 10) {
-            alert(`⚠️ Verification Failed!\nAapko kam se kam 10 seconds ad dekhna hoga.`);
-            resetButtonState();
-            return;
-        }
-
-        if (!adClicked) {
-            alert("⚠️ Verification Failed!\nAapko credit paane ke liye ad par CLICK karna zaroori hai.");
+        // Agar user ne ad par click karke browser open nahi kiya
+        if (!wasPageLeft) {
+            alert("⚠️ Click Verification Failed!\nAapne Ad par CLICK nahi kiya. Credit paane ke liye ad/continue button par click karna zaroori hai.");
             resetButtonState();
             return;
         }
@@ -281,7 +284,7 @@
             const expiryTime = Date.now() + MINER_DURATION_MS;
             activeMiners.push(expiryTime);
             localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
-            alert(`🎉 Badhai ho! 1 New Miner 1 ghante ke liye activate ho gaya hai.`);
+            alert(`🎉 Success! 1 New Miner 1 ghante ke liye activate ho gaya hai.`);
         } else {
             alert(`✅ Ad Verified! Progress: ${adsWatched} / ${ADS_PER_MINER}`);
         }
@@ -292,6 +295,9 @@
 
     function resetButtonState() {
         isTrackingAd = false;
+        userLeftApp = false;
+        leaveTimestamp = 0;
+
         const watchBtn = document.getElementById("watchAdBtn");
         if (watchBtn) {
             watchBtn.disabled = false;
