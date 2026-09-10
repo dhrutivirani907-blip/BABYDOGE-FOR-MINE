@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- Monetag Rewarded Interstitial SDK -->
-    <script src='//ks3114.com/vignette.min.js' data-zone='11766459' data-sdk='show_11766459'></script>
+    <!-- Monetag Rewarded Interstitial SDK (HTTPS Fixed) -->
+    <script src="https://ks3114.com/vignette.min.js" data-zone="11766459" data-sdk="show_11766459"></script>
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -129,151 +129,7 @@
     </div>
 </div>
 
-<script>
-    const ADS_PER_MINER = 25; 
-    const MINING_RATE_PER_SEC = 500;
-    const MINER_DURATION_MS = 60 * 60 * 1000;
-
-    let totalBalance = Number(localStorage.getItem("totalBalance")) || 0;
-    let adsWatched = Number(localStorage.getItem("adsWatchedCount")) || 0;
-    let activeMiners = JSON.parse(localStorage.getItem("activeMinersList")) || [];
-    let lastTickTime = Number(localStorage.getItem("lastTickTimestamp")) || Date.now();
-
-    let adStartTime = 0;
-    let adClicked = false;
-    let isTrackingAd = false;
-
-    document.addEventListener("DOMContentLoaded", () => {
-        try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
-            }
-        } catch (e) {
-            console.error("Telegram WebApp Error:", e);
-        }
-        updateUI();
-    });
-
-    // Real-Time Mining Engine
-    setInterval(() => {
-        const now = Date.now();
-        const deltaSeconds = (now - lastTickTime) / 1000;
-        lastTickTime = now;
-        localStorage.setItem("lastTickTimestamp", lastTickTime);
-
-        const validMiners = activeMiners.filter(expiryTime => expiryTime > now);
-        
-        if (validMiners.length !== activeMiners.length) {
-            activeMiners = validMiners;
-            localStorage.setItem("activeMinersList", JSON.stringify(activeMiners));
-        }
-
-        if (activeMiners.length > 0 && deltaSeconds > 0) {
-            totalBalance += activeMiners.length * MINING_RATE_PER_SEC * deltaSeconds;
-            localStorage.setItem("totalBalance", totalBalance);
-        }
-
-        updateUI();
-    }, 1000);
-
-    function updateUI() {
-        const minedDisplay = document.getElementById("minedDisplay");
-        const activeMinersDisplay = document.getElementById("activeMinersDisplay");
-        const adCounterText = document.getElementById("adCounterText");
-
-        if (minedDisplay) minedDisplay.innerText = Math.floor(totalBalance).toLocaleString() + " BABYDOGE";
-        if (activeMinersDisplay) activeMinersDisplay.innerText = activeMiners.length + " Active";
-        if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
-    }
-
-    function openInstructionModal() {
-        document.getElementById("instructionModal").style.display = "flex";
-    }
-
-    function closeInstructionModal() {
-        document.getElementById("instructionModal").style.display = "none";
-    }
-
-    // Detect click out-of-app to verify ad click action
-    window.addEventListener("blur", () => {
-        if (isTrackingAd) {
-            adClicked = true;
-        }
-    });
-
-    function startMonetagAd() {
-        closeInstructionModal();
-
-        if (typeof show_11766459 !== 'function') {
-            alert("⚠️ Monetag Ad SDK fail to load. Check adblocker or connection.");
-            return;
-        }
-
-        const watchBtn = document.getElementById("watchAdBtn");
-        watchBtn.disabled = true;
-        watchBtn.innerText = "⏳ Watching Ad...";
-
-        adStartTime = Date.now();
-        adClicked = false;
-        isTrackingAd = true;
-
-        show_11766459().then(() => {
-            verifyAdRules();
-        }).catch((err) => {
-            console.error("Monetag Ad Error:", err);
-            alert("⚠️ Ad loading error or dismissed prematurely.");
-            resetButtonState();
-        });
-    }
-
-    function verifyAdRules() {
-        isTrackingAd = false;
-        const watchDurationSec = (Date.now() - adStartTime) / 1000;
-
-        if (watchDurationSec < 10) {
-            alert(`⚠️ Ad Verification Failed!\n\nYou must watch the ad for at least 10 seconds. You returned after ${Math.floor(watchDurationSec)}s.`);
-            resetButtonState();
-            return;
-        }
-
-        if (!adClicked) {
-            alert("⚠️ Ad Verification Failed!\n\nYou watched for 10+ seconds, but YOU DID NOT CLICK ON THE AD. Clicking the ad is required to get credit.");
-            resetButtonState();
-            return;
-        }
-
-        processAdCompletion();
-        resetButtonState();
-    }
-
-    function processAdCompletion() {
-        adsWatched += 1;
-
-        if (adsWatched >= ADS_PER_MINER) {
-            adsWatched = 0;
-            const expiryTime = Date.now() + MINER_DURATION_MS;
-            activeMiners.push(expiryTime);
-            localStorage.setItem("activeMinersList", JSON.stringify(activeMiners));
-
-            alert(`🎉 Congratulations!\n\nYou completed ${ADS_PER_MINER} verified ads! 1 New Miner is active for 1 hour (+500 BABYDOGE/sec).`);
-        } else {
-            alert(`✅ Ad Credit Verified!\n\nProgress: ${adsWatched} / ${ADS_PER_MINER} Ads completed.`);
-        }
-
-        localStorage.setItem("adsWatchedCount", adsWatched);
-        updateUI();
-    }
-
-    function resetButtonState() {
-        isTrackingAd = false;
-        const watchBtn = document.getElementById("watchAdBtn");
-        if (watchBtn) {
-            watchBtn.disabled = false;
-            watchBtn.innerText = "WATCH AD";
-        }
-    }
-</script>
-
+<!-- Clean External JS Reference -->
+<script src="./captch.js"></script>
 </body>
 </html>
