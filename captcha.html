@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- 1. OnClickA TMA Ad SDK -->
-    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js" data-spot-id="6151066"></script>
+    <!-- Monetag Rewarded Interstitial SDK -->
+    <script src='//ks3114.com/vignette.min.js' data-zone='11766459' data-sdk='show_11766459'></script>
 
-    <!-- 2. Telegram WebApp SDK -->
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
@@ -19,90 +19,61 @@
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; background-color: #f4f6f9; }
         
         .container { padding: 15px; width: 100%; min-height: 100vh; text-align: center; }
-        
-        /* Page Header */
         .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #333; }
         
-        /* Coin Logo */
         .coin-logo { 
-            width: 80px; 
-            height: 80px; 
-            margin: 10px auto 20px auto; 
-            border-radius: 50%; 
-            background: #ffb703; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
+            width: 80px; height: 80px; margin: 10px auto 20px auto; border-radius: 50%; 
+            background: #ffb703; display: flex; align-items: center; justify-content: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
         }
         .coin-logo i { font-size: 45px; color: #ffffff; }
 
-        /* Summary Boxes */
         .summary-box { 
-            background: #ffffff; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 12px; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; 
+            padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
         }
         .summary-box h4 { margin: 0 0 5px 0; color: #666; font-size: 13px; text-transform: uppercase; }
         .summary-box .value { font-size: 22px; font-weight: bold; color: #28a745; }
 
-        /* Mining Power Box */
         .miner-box { 
-            background: #ffffff; 
-            border: 2px solid #007bff; 
-            border-radius: 14px; 
-            padding: 20px; 
-            margin: 15px 0; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
+            background: #ffffff; border: 2px solid #007bff; border-radius: 14px; 
+            padding: 20px; margin: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
         }
         .miner-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
         .progress-text { font-size: 16px; font-weight: bold; color: #007bff; margin: 10px 0; }
         
         .ad-btn { 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            padding: 14px 24px; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            font-size: 16px; 
-            cursor: pointer; 
-            width: 100%; 
-            transition: 0.2s ease;
+            background: #007bff; color: white; border: none; padding: 14px 24px; 
+            border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; 
         }
         .ad-btn:disabled { background: #6c757d; cursor: not-allowed; }
 
-        /* Selector Container Required for OnClickA */
-        #ad-container {
-            width: 100%;
-            margin-top: 10px;
-            display: none;
+        .notice-card { 
+            background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 10px; 
+            padding: 14px; font-size: 13px; font-weight: bold; line-height: 1.5; margin-top: 20px; text-align: left;
         }
 
-        /* Notice Card */
-        .notice-card { 
-            background: #fff3cd; 
-            color: #856404; 
-            border: 1px solid #ffeeba; 
-            border-radius: 10px; 
-            padding: 14px; 
-            font-size: 13px; 
-            font-weight: bold; 
-            line-height: 1.5; 
-            margin-top: 20px; 
-            text-align: left;
+        /* Modal / Popup Styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-card {
+            background: #ffffff; border-radius: 16px; padding: 20px; width: 90%; max-width: 360px;
+            text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .modal-title { font-size: 18px; font-weight: bold; color: #d9534f; margin-bottom: 12px; }
+        .modal-desc { font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 18px; text-align: left; }
+        .modal-btn {
+            background: #28a745; color: white; border: none; padding: 12px; width: 100%;
+            border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-
-    <!-- Header -->
     <div class="page-header">
         <button class="back-btn" onclick="history.back()">
             <i class="fa-solid fa-arrow-left"></i>
@@ -111,48 +82,55 @@
         <div style="width:20px;"></div>
     </div>
 
-    <!-- Coin Logo -->
     <div class="coin-logo">
         <i class="fa-solid fa-coins"></i>
     </div>
 
-    <!-- Total Mined Amount Box -->
     <div class="summary-box">
         <h4>TOTAL MINED BALANCE</h4>
         <div class="value" id="minedDisplay">0 BABYDOGE</div>
     </div>
 
-    <!-- Total Active Miners Box -->
     <div class="summary-box">
         <h4>TOTAL ACTIVE MINERS</h4>
         <div class="value" style="color:#007bff;" id="activeMinersDisplay">0 Active</div>
     </div>
 
-    <!-- Mining Power Action Box -->
     <div class="miner-box">
         <div class="miner-title">
             <i class="fa-solid fa-bolt" style="color:#ff9900;"></i> 100TH MINING POWER
         </div>
         <p style="margin: 5px 0; color: #555; font-size: 13px;">
-            Watch 15 Ads to activate 1 Miner (+500 BABYDOGE/sec)
+            Watch 25 Ads to activate 1 Miner (+500 BABYDOGE/sec)
         </p>
-        <div class="progress-text" id="adCounterText">Progress: 0 / 15 Ads</div>
-        <button class="ad-btn" id="watchAdBtn" type="button">WATCH AD</button>
-        
-        <!-- Target container matching Dashboard selector #ad-container -->
-        <div id="ad-container"></div>
+        <div class="progress-text" id="adCounterText">Progress: 0 / 25 Ads</div>
+        <button class="ad-btn" id="watchAdBtn" type="button" onclick="openInstructionModal()">WATCH AD</button>
     </div>
 
-    <!-- Highlighted Notice -->
     <div class="notice-card">
         <i class="fa-solid fa-triangle-exclamation"></i> <strong>NOTICE:</strong> 1 miner is active for 1 hour. After 1 hour, miner will be removed.
     </div>
+</div>
 
+<!-- Instructions Modal Popup -->
+<div class="modal-overlay" id="instructionModal">
+    <div class="modal-card">
+        <div class="modal-title">⚠️ Mandatory Ad Verification Rules</div>
+        <div class="modal-desc">
+            To successfully register <b>1 Ad Credit</b>, please follow these instructions:
+            <br><br>
+            1️⃣ Watch the video advertisement for a <b>minimum of 10 seconds</b>.<br>
+            2️⃣ You <b>MUST CLICK ON THE AD</b> banner/button during or after watching.<br>
+            3️⃣ Return to the app after clicking.
+            <br><br>
+            <i>Note: Closing the ad without clicking or watching for less than 10 seconds will result in <b>0 credit</b>.</i>
+        </div>
+        <button class="modal-btn" onclick="startMonetagAd()">UNDERSTOOD & WATCH AD</button>
+    </div>
 </div>
 
 <script>
-    const SPOT_ID = '6151066';
-    const ADS_PER_MINER = 15; 
+    const ADS_PER_MINER = 25; 
     const MINING_RATE_PER_SEC = 500;
     const MINER_DURATION_MS = 60 * 60 * 1000;
 
@@ -161,18 +139,9 @@
     let activeMiners = JSON.parse(localStorage.getItem("activeMinersList")) || [];
     let lastTickTime = Number(localStorage.getItem("lastTickTimestamp")) || Date.now();
 
-    function initOnClickA() {
-        if (window.initCdTma) {
-            window.initCdTma({ id: SPOT_ID, containerId: 'ad-container' })
-                .then(show => {
-                    window.show = show;
-                    console.log("OnClickA Ad SDK Initialized!");
-                })
-                .catch(e => console.error('OnClickA Ad Init Error:', e));
-        } else {
-            setTimeout(initOnClickA, 500);
-        }
-    }
+    let adStartTime = 0;
+    let adClicked = false;
+    let isTrackingAd = false;
 
     document.addEventListener("DOMContentLoaded", () => {
         try {
@@ -183,16 +152,10 @@
         } catch (e) {
             console.error("Telegram WebApp Error:", e);
         }
-
-        initOnClickA();
         updateUI();
-
-        const watchBtn = document.getElementById("watchAdBtn");
-        if (watchBtn) {
-            watchBtn.addEventListener("click", handleAdClick);
-        }
     });
 
+    // Real-Time Mining Engine
     setInterval(() => {
         const now = Date.now();
         const deltaSeconds = (now - lastTickTime) / 1000;
@@ -224,40 +187,64 @@
         if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
     }
 
-    async function handleAdClick(e) {
-        if (e && e.preventDefault) e.preventDefault();
+    function openInstructionModal() {
+        document.getElementById("instructionModal").style.display = "flex";
+    }
 
-        const btn = document.getElementById("watchAdBtn");
-        const adContainer = document.getElementById("ad-container");
+    function closeInstructionModal() {
+        document.getElementById("instructionModal").style.display = "none";
+    }
 
-        if (btn && btn.disabled) return;
+    // Detect click out-of-app to verify ad click action
+    window.addEventListener("blur", () => {
+        if (isTrackingAd) {
+            adClicked = true;
+        }
+    });
 
-        if (btn) {
-            btn.disabled = true;
-            btn.innerText = "⏳ Requesting Ad...";
+    function startMonetagAd() {
+        closeInstructionModal();
+
+        if (typeof show_11766459 !== 'function') {
+            alert("⚠️ Monetag Ad SDK fail to load. Check adblocker or connection.");
+            return;
         }
 
-        if (adContainer) adContainer.style.display = "block";
+        const watchBtn = document.getElementById("watchAdBtn");
+        watchBtn.disabled = true;
+        watchBtn.innerText = "⏳ Watching Ad...";
 
-        try {
-            if (typeof window.show === 'function') {
-                await window.show();
-                processAdCompletion();
-            } else if (window.initCdTma) {
-                const showFn = await window.initCdTma({ id: SPOT_ID, containerId: 'ad-container' });
-                window.show = showFn;
-                await window.show();
-                processAdCompletion();
-            } else {
-                alert("⚠️ OnClickA tma.js SDK load nahi hui hai.");
-            }
-        } catch (err) {
-            const msg = typeof err === 'object' ? JSON.stringify(err) : err;
-            alert("⚠️ Ad Error: " + (msg || "No fill ya ad close kar diya gaya."));
-        } finally {
-            if (adContainer) adContainer.style.display = "none";
+        adStartTime = Date.now();
+        adClicked = false;
+        isTrackingAd = true;
+
+        show_11766459().then(() => {
+            verifyAdRules();
+        }).catch((err) => {
+            console.error("Monetag Ad Error:", err);
+            alert("⚠️ Ad loading error or dismissed prematurely.");
             resetButtonState();
+        });
+    }
+
+    function verifyAdRules() {
+        isTrackingAd = false;
+        const watchDurationSec = (Date.now() - adStartTime) / 1000;
+
+        if (watchDurationSec < 10) {
+            alert(`⚠️ Ad Verification Failed!\n\nYou must watch the ad for at least 10 seconds. You returned after ${Math.floor(watchDurationSec)}s.`);
+            resetButtonState();
+            return;
         }
+
+        if (!adClicked) {
+            alert("⚠️ Ad Verification Failed!\n\nYou watched for 10+ seconds, but YOU DID NOT CLICK ON THE AD. Clicking the ad is required to get credit.");
+            resetButtonState();
+            return;
+        }
+
+        processAdCompletion();
+        resetButtonState();
     }
 
     function processAdCompletion() {
@@ -269,9 +256,9 @@
             activeMiners.push(expiryTime);
             localStorage.setItem("activeMinersList", JSON.stringify(activeMiners));
 
-            alert(`🎉 Congratulations!\n\nAapne 15 Ads poore kar liye hain! 1 Naya Miner 1 ghante ke liye activate ho gaya hai (+500 BABYDOGE/sec).`);
+            alert(`🎉 Congratulations!\n\nYou completed ${ADS_PER_MINER} verified ads! 1 New Miner is active for 1 hour (+500 BABYDOGE/sec).`);
         } else {
-            alert(`✅ Ad Verified!\n\nProgress: ${adsWatched} / ${ADS_PER_MINER} Ads completed.`);
+            alert(`✅ Ad Credit Verified!\n\nProgress: ${adsWatched} / ${ADS_PER_MINER} Ads completed.`);
         }
 
         localStorage.setItem("adsWatchedCount", adsWatched);
@@ -279,10 +266,11 @@
     }
 
     function resetButtonState() {
-        const btn = document.getElementById("watchAdBtn");
-        if (btn) {
-            btn.disabled = false;
-            btn.innerText = "WATCH AD";
+        isTrackingAd = false;
+        const watchBtn = document.getElementById("watchAdBtn");
+        if (watchBtn) {
+            watchBtn.disabled = false;
+            watchBtn.innerText = "WATCH AD";
         }
     }
 </script>
