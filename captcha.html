@@ -119,10 +119,7 @@
             To successfully get <b>1 Ad Credit</b>:
             <br><br>
             1️⃣ Watch Ad for at least <b>10 seconds</b>.<br>
-            2️⃣ Click anywhere on the Ad / Continue Button to open browser.<br>
-            3️⃣ Return back to the app.
-            <br><br>
-            <i>Note: Closing ad with X button without visiting link = 0 Credit.</i>
+            2️⃣ Return back to the app to claim credit.
         </div>
         <button class="modal-btn" onclick="startMonetagAd()">UNDERSTOOD & WATCH AD</button>
     </div>
@@ -145,10 +142,8 @@
     let activeMiners = [];
     let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
 
-    // Verification Trackers
+    // Ad Tracker
     let adStartTime = 0;
-    let isTrackingAd = false;
-    let externalBrowserOpened = false;
 
     try {
         const rawMiners = localStorage.getItem(STORAGE_KEYS.MINERS);
@@ -168,23 +163,6 @@
         if (modal) modal.style.display = "none";
     };
 
-    // Tracking App Departure (External Browser Opening)
-    function handleVisibilityChange() {
-        if (!isTrackingAd) return;
-
-        const timeElapsed = (Date.now() - adStartTime) / 1000;
-
-        // When app goes to background (User clicked ad & external link opened)
-        if (document.visibilityState === "hidden" || document.hidden) {
-            if (timeElapsed >= 8) { // User spent enough time before clicking
-                externalBrowserOpened = true;
-            }
-        }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleVisibilityChange);
-
     window.startMonetagAd = function() {
         window.closeInstructionModal();
 
@@ -202,15 +180,11 @@
             watchBtn.innerText = "⏳ Watching Ad...";
         }
 
-        // Initialize Ad Tracking State
         adStartTime = Date.now();
-        isTrackingAd = true;
-        externalBrowserOpened = false;
 
         try {
             adTriggerFunction()
                 .then(() => { 
-                    // Small delay to let return-from-browser event process
                     setTimeout(verifyAdRules, 500); 
                 })
                 .catch((err) => {
@@ -264,21 +238,12 @@
         if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
     }
 
-    // Strict Verification Logic
+    // Timer-only Verification Logic
     function verifyAdRules() {
         const totalWatchDuration = (Date.now() - adStartTime) / 1000;
-        isTrackingAd = false;
 
-        // Condition 1: Minimum watch duration check (10 seconds)
         if (totalWatchDuration < 10) {
             alert("⚠️ Verification Failed!\nAapko kam se kam 10 second ad dekhna zaroori hai.");
-            resetButtonState();
-            return;
-        }
-
-        // Condition 2: External Link Opened Check (Did user click ad?)
-        if (!externalBrowserOpened) {
-            alert("⚠️ Click Verification Failed!\nAapne ad par click nahi kiya (Close button dabane par credit nahi milta). Credit paane ke liye ad par CLICK karna zaroori hai.");
             resetButtonState();
             return;
         }
@@ -305,9 +270,6 @@
     }
 
     function resetButtonState() {
-        isTrackingAd = false;
-        externalBrowserOpened = false;
-
         const watchBtn = document.getElementById("watchAdBtn");
         if (watchBtn) {
             watchBtn.disabled = false;
