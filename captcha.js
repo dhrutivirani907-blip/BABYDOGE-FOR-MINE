@@ -18,8 +18,6 @@ let activeMiners = [];
 let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
 
 let adStartTime = 0;
-let adClicked = false;
-let isTrackingAd = false;
 
 // Safe LocalStorage Parser
 try {
@@ -66,13 +64,11 @@ window.startMonetagAd = function() {
     }
 
     adStartTime = Date.now();
-    adClicked = false;
-    isTrackingAd = true;
 
     try {
         adTriggerFunction()
             .then(() => {
-                verifyAdRules();
+                setTimeout(verifyAdRules, 500);
             })
             .catch((err) => {
                 console.error("Monetag Execution Error:", err);
@@ -86,19 +82,10 @@ window.startMonetagAd = function() {
     }
 };
 
-// Initialize Application & Bind Event Listeners
+// Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
     initTelegramApp();
     updateUI();
-
-    // Direct JS Event Listener Binding to fix Click Issue
-    const watchBtn = document.getElementById("watchAdBtn");
-    if (watchBtn) {
-        watchBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            window.openInstructionModal();
-        });
-    }
 });
 
 function initTelegramApp() {
@@ -152,26 +139,12 @@ function updateUI() {
     }
 }
 
-// Detect window blur for ad interaction verification
-window.addEventListener("blur", () => {
-    if (isTrackingAd) {
-        adClicked = true;
-    }
-});
-
-// Strict Verification Layer
+// Timer Verification Only
 function verifyAdRules() {
-    isTrackingAd = false;
     const watchDurationSec = (Date.now() - adStartTime) / 1000;
 
     if (watchDurationSec < 10) {
         alert(`⚠️ Verification Failed!\n\nYou must watch the ad for at least 10 seconds. (Watched: ${Math.floor(watchDurationSec)}s)`);
-        resetButtonState();
-        return;
-    }
-
-    if (!adClicked) {
-        alert("⚠️ Verification Failed!\n\nYou must CLICK on the advertisement banner/link to earn ad credit.");
         resetButtonState();
         return;
     }
@@ -201,7 +174,6 @@ function processAdCompletion() {
 
 // Reset UI Button State
 function resetButtonState() {
-    isTrackingAd = false;
     const watchBtn = document.getElementById("watchAdBtn");
     if (watchBtn) {
         watchBtn.disabled = false;
