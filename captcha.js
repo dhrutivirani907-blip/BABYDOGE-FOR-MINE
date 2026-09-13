@@ -2,6 +2,7 @@
 const ADS_PER_MINER = 25; 
 const MINING_RATE_PER_SEC = 500;
 const MINER_DURATION_MS = 60 * 60 * 1000; // 1 Hour
+const ADSTERRA_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/mag701y1?key=e6dcf81d34580abdf64766ac0be7e76d";
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -17,7 +18,9 @@ let adsWatched = Number(localStorage.getItem(STORAGE_KEYS.ADS_COUNT)) || 0;
 let activeMiners = [];
 let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
 
+// Ad Tracker State
 let adStartTime = 0;
+let isTrackingAd = false;
 
 // Safe LocalStorage Parser
 try {
@@ -46,17 +49,10 @@ window.closeInstructionModal = function() {
     }
 };
 
-window.startMonetagAd = function() {
+window.startAdsterraAd = function() {
     window.closeInstructionModal();
 
     const watchBtn = document.getElementById("watchAdBtn");
-    const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
-
-    if (!adTriggerFunction) {
-        alert("⚠️ Monetag Ad SDK failed to load. Please check your internet connection or disable AdBlocker/Private DNS.");
-        resetButtonState();
-        return;
-    }
 
     if (watchBtn) {
         watchBtn.disabled = true;
@@ -64,23 +60,32 @@ window.startMonetagAd = function() {
     }
 
     adStartTime = Date.now();
+    isTrackingAd = true;
 
-    try {
-        adTriggerFunction()
-            .then(() => {
-                setTimeout(verifyAdRules, 500);
-            })
-            .catch((err) => {
-                console.error("Monetag Execution Error:", err);
-                alert("⚠️ Ad display was interrupted or closed prematurely.");
-                resetButtonState();
-            });
-    } catch (err) {
-        console.error("Monetag Call Exception:", err);
-        alert("⚠️ Could not initialize ad playback.");
-        resetButtonState();
-    }
+    // Open External Link safely via Telegram WebApp or standard window open
+    openExternalLink(ADSTERRA_DIRECT_LINK);
 };
+
+function openExternalLink(url) {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+        window.Telegram.WebApp.openLink(url);
+    } else {
+        window.open(url, '_blank');
+    }
+}
+
+// Event Listeners to detect when user returns to app
+window.addEventListener('focus', () => {
+    if (isTrackingAd) {
+        verifyAdRules();
+    }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isTrackingAd) {
+        verifyAdRules();
+    }
+});
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
@@ -139,12 +144,15 @@ function updateUI() {
     }
 }
 
-// Timer Verification Only
+// 8-Second Timer Verification Logic
 function verifyAdRules() {
-    const watchDurationSec = (Date.now() - adStartTime) / 1000;
+    if (!isTrackingAd) return;
 
-    if (watchDurationSec < 10) {
-        alert(`⚠️ Verification Failed!\n\nYou must watch the ad for at least 10 seconds. (Watched: ${Math.floor(watchDurationSec)}s)`);
+    const watchDurationSec = (Date.now() - adStartTime) / 1000;
+    isTrackingAd = false;
+
+    if (watchDurationSec < 8) {
+        alert(`⚠️ Verification Failed!\n\nAapko kam se kam 8 second ad dekhna zaroori hai. (Watched: ${Math.floor(watchDurationSec)}s)`);
         resetButtonState();
         return;
     }
@@ -174,6 +182,7 @@ function processAdCompletion() {
 
 // Reset UI Button State
 function resetButtonState() {
+    isTrackingAd = false;
     const watchBtn = document.getElementById("watchAdBtn");
     if (watchBtn) {
         watchBtn.disabled = false;
