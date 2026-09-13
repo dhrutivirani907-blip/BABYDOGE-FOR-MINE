@@ -7,9 +7,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- Monetag Rewarded Interstitial SDK -->
-    <script src="https://libtl.com/sdk.js" data-zone="11766459" data-sdk="show_11766459"></script>
-
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -118,164 +115,13 @@
         <div class="modal-desc">
             To successfully get <b>1 Ad Credit</b>:
             <br><br>
-            1️⃣ Watch Ad for at least <b>10 seconds</b>.<br>
+            1️⃣ Watch Ad for at least <b>8 seconds</b>.<br>
             2️⃣ Return back to the app to claim credit.
         </div>
-        <button class="modal-btn" onclick="startMonetagAd()">UNDERSTOOD & WATCH AD</button>
+        <button class="modal-btn" onclick="startAdsterraAd()">UNDERSTOOD & WATCH AD</button>
     </div>
 </div>
 
-<script>
-    const ADS_PER_MINER = 25; 
-    const MINING_RATE_PER_SEC = 500;
-    const MINER_DURATION_MS = 60 * 60 * 1000;
-
-    const STORAGE_KEYS = {
-        BALANCE: "totalBalance",
-        ADS_COUNT: "adsWatchedCount",
-        MINERS: "activeMinersList",
-        LAST_TICK: "lastTickTimestamp"
-    };
-
-    let totalBalance = Number(localStorage.getItem(STORAGE_KEYS.BALANCE)) || 0;
-    let adsWatched = Number(localStorage.getItem(STORAGE_KEYS.ADS_COUNT)) || 0;
-    let activeMiners = [];
-    let lastTickTime = Number(localStorage.getItem(STORAGE_KEYS.LAST_TICK)) || Date.now();
-
-    // Ad Tracker
-    let adStartTime = 0;
-
-    try {
-        const rawMiners = localStorage.getItem(STORAGE_KEYS.MINERS);
-        activeMiners = rawMiners ? JSON.parse(rawMiners) : [];
-        if (!Array.isArray(activeMiners)) activeMiners = [];
-    } catch (e) {
-        activeMiners = [];
-    }
-
-    window.openInstructionModal = function() {
-        const modal = document.getElementById("instructionModal");
-        if (modal) modal.style.display = "flex";
-    };
-
-    window.closeInstructionModal = function() {
-        const modal = document.getElementById("instructionModal");
-        if (modal) modal.style.display = "none";
-    };
-
-    window.startMonetagAd = function() {
-        window.closeInstructionModal();
-
-        const watchBtn = document.getElementById("watchAdBtn");
-        const adTriggerFunction = window.show_11766459 || (typeof show_11766459 === "function" ? show_11766459 : null);
-
-        if (!adTriggerFunction) {
-            alert("⚠️ Ad SDK load nahi hui. Please AdBlocker disable karke check karein.");
-            resetButtonState();
-            return;
-        }
-
-        if (watchBtn) {
-            watchBtn.disabled = true;
-            watchBtn.innerText = "⏳ Watching Ad...";
-        }
-
-        adStartTime = Date.now();
-
-        try {
-            adTriggerFunction()
-                .then(() => { 
-                    setTimeout(verifyAdRules, 500); 
-                })
-                .catch((err) => {
-                    alert("⚠️ Ad was closed or interrupted.");
-                    resetButtonState();
-                });
-        } catch (err) {
-            alert("⚠️ Could not launch ad.");
-            resetButtonState();
-        }
-    };
-
-    document.addEventListener("DOMContentLoaded", () => {
-        try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
-            }
-        } catch (e) {}
-
-        updateUI();
-    });
-
-    setInterval(() => {
-        const now = Date.now();
-        const deltaSeconds = Math.max(0, (now - lastTickTime) / 1000);
-        lastTickTime = now;
-        localStorage.setItem(STORAGE_KEYS.LAST_TICK, lastTickTime.toString());
-
-        const validMiners = activeMiners.filter(expiryTime => expiryTime > now);
-        if (validMiners.length !== activeMiners.length) {
-            activeMiners = validMiners;
-            localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
-        }
-
-        if (activeMiners.length > 0 && deltaSeconds > 0) {
-            totalBalance += activeMiners.length * MINING_RATE_PER_SEC * deltaSeconds;
-            localStorage.setItem(STORAGE_KEYS.BALANCE, totalBalance.toString());
-        }
-
-        updateUI();
-    }, 1000);
-
-    function updateUI() {
-        const minedDisplay = document.getElementById("minedDisplay");
-        const activeMinersDisplay = document.getElementById("activeMinersDisplay");
-        const adCounterText = document.getElementById("adCounterText");
-
-        if (minedDisplay) minedDisplay.innerText = `${Math.floor(totalBalance).toLocaleString()} BABYDOGE`;
-        if (activeMinersDisplay) activeMinersDisplay.innerText = `${activeMiners.length} Active`;
-        if (adCounterText) adCounterText.innerText = `Progress: ${adsWatched} / ${ADS_PER_MINER} Ads`;
-    }
-
-    // Timer-only Verification Logic
-    function verifyAdRules() {
-        const totalWatchDuration = (Date.now() - adStartTime) / 1000;
-
-        if (totalWatchDuration < 10) {
-            alert("⚠️ Verification Failed!\nAapko kam se kam 10 second ad dekhna zaroori hai.");
-            resetButtonState();
-            return;
-        }
-
-        processAdCompletion();
-        resetButtonState();
-    }
-
-    function processAdCompletion() {
-        adsWatched += 1;
-
-        if (adsWatched >= ADS_PER_MINER) {
-            adsWatched = 0;
-            const expiryTime = Date.now() + MINER_DURATION_MS;
-            activeMiners.push(expiryTime);
-            localStorage.setItem(STORAGE_KEYS.MINERS, JSON.stringify(activeMiners));
-            alert(`🎉 Badhai ho! 1 New Miner 1 ghante ke liye activate ho gaya hai.`);
-        } else {
-            alert(`✅ Ad Verified! Progress: ${adsWatched} / ${ADS_PER_MINER}`);
-        }
-
-        localStorage.setItem(STORAGE_KEYS.ADS_COUNT, adsWatched.toString());
-        updateUI();
-    }
-
-    function resetButtonState() {
-        const watchBtn = document.getElementById("watchAdBtn");
-        if (watchBtn) {
-            watchBtn.disabled = false;
-            watchBtn.innerText = "WATCH AD";
-        }
-    }
-</script>
+<script src="captch.js"></script>
 </body>
 </html>
